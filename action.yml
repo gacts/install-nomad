@@ -1,15 +1,19 @@
 name: Install nomad
 description: Installs nomad binary file into your actions workflow
 
-#inputs:
-#  milliseconds:  # id of input
-#    description: 'number of milliseconds to wait'
-#    required: true
-#    default: '1000'
-#
-#outputs:
-#  time: # output will be available to future steps
-#    description: 'The current time after waiting'
+inputs:
+  version:
+    description: Nomad version
+    required: true
+    default: latest
+  github-token:
+    description: GitHub auth token. Since there's a default, this is typically not supplied by the user
+    required: false
+    default: ${{ github.token }}
+
+outputs:
+  nomad-bin:
+    description: Path to the nomad binary file
 
 runs:
   using: node16

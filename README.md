@@ -2,7 +2,7 @@
   <img src="https://hsto.org/webt/35/4-/o-/354-o-9pgi-abkq7d5mxu_-jxyc.png" alt="Logo" width="100" />
 </p>
 
-# Install [nomad][nomad] action <small>(cross-platform)</small>
+# Install [nomad][nomad] action
 
 ![Release version][badge_release_version]
 [![Build Status][badge_build]][link_build]
@@ -37,7 +37,7 @@ Following inputs can be used as `step.with` keys:
 
 | Name           |   Type   |        Default        | Required | Description                                                 |
 |----------------|:--------:|:---------------------:|:--------:|-------------------------------------------------------------|
-| `version`      | `string` |       `latest`        |   yes    | Nomad version to install                                    |
+| `version`      | `string` |       `latest`        |    no    | Nomad version to install                                    |
 | `github-token` | `string` | `${{ github.token }}` |    no    | GitHub token (for requesting the latest Nomad version info) |
 
 ### Outputs

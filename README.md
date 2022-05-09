@@ -1,7 +1,7 @@
 # Create a JavaScript Action
 
 <p align="center">
-  <a href="https://github.com/actions/javascript-action/actions"><img alt="javscript-action status" src="https://github.com/actions/javascript-action/workflows/units-test/badge.svg"></a>
+  <a href="https://github.com/gacts/install-nomad/actions"><img alt="javscript-action status" src="https://github.com/gacts/install-nomad/workflows/units-test/badge.svg"></a>
 </p>
 
 Use this template to bootstrap the creation of a JavaScript action.:rocket:
@@ -108,9 +108,9 @@ See the [versioning documentation](https://github.com/actions/toolkit/blob/maste
 You can now consume the action by referencing the v1 branch
 
 ```yaml
-uses: actions/javascript-action@v1
+uses: gacts/install-nomad@v1
 with:
   milliseconds: 1000
 ```
 
-See the [actions tab](https://github.com/actions/javascript-action/actions) for runs of this action! :rocket:
+See the [actions tab](https://github.com/gacts/install-nomad/actions) for runs of this action! :rocket:

@@ -1,29 +1,26 @@
 {
-  "name": "javascript-action",
-  "version": "1.0.0",
-  "description": "JavaScript Action Template",
-  "main": "index.js",
+  "name": "install-nomad",
+  "description": "Installs nomad binary file into your actions workflow",
+  "main": "src/index.js",
   "scripts": {
-    "lint": "eslint .",
-    "prepare": "ncc build index.js -o dist --source-map --license licenses.txt",
-    "test": "jest",
-    "all": "npm run lint && npm run prepare && npm run test"
+    "lint": "eslint ./src",
+    "build": "ncc build src/index.js -o dist --source-map --minify --no-cache"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/actions/javascript-action.git"
+    "url": "git+https://github.com/gacts/install-nomad.git"
   },
   "keywords": [
     "GitHub",
     "Actions",
-    "JavaScript"
+    "Nomad"
   ],
   "author": "",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/actions/javascript-action/issues"
+    "url": "https://github.com/gacts/install-nomad/issues"
   },
-  "homepage": "https://github.com/actions/javascript-action#readme",
+  "homepage": "https://github.com/gacts/install-nomad#readme",
   "dependencies": {
     "@actions/core": "^1.2.5"
   },

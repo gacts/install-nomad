@@ -2,13 +2,18 @@
   <img src="https://hsto.org/webt/35/4-/o-/354-o-9pgi-abkq7d5mxu_-jxyc.png" alt="Logo" width="100" />
 </p>
 
-# Install [nomad][nomad] action
+# Install [nomad][nomad] action <small>(cross-platform)</small>
 
 ![Release version][badge_release_version]
 [![Build Status][badge_build]][link_build]
 [![License][badge_license]][link_license]
 
-This action installs [nomad][nomad] as a binary file into your workflow.
+This action installs [nomad][nomad] as a binary file into your workflow. It can be run on **Linux** (`ubuntu-latest`), **macOS** (`macos-latest`), or **Windows** (`windows-latest`).
+
+- 💾 Nomad downloads page: <https://www.nomadproject.io/downloads>
+- 🚀 Nomad releases page: <https://github.com/hashicorp/nomad/releases>
+
+Additionally, this action uses GitHub **caching mechanism** to speed up your workflow execution time!
 
 ## Usage
 
@@ -18,13 +23,28 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - uses: gacts/install-nomad@v1
+        #with:
+        #  version: 1.2.0 # `latest` by default, but you can set a specific version to install, e.g.: `1.2.0`
+
+      - run: nomad version # any nomad command can be executed
 ```
 
-### Customizing
+## Customizing
 
-#### Inputs
+### Inputs
 
-_WIP_
+Following inputs can be used as `step.with` keys:
+
+| Name           |   Type   |        Default        | Required | Description                                                 |
+|----------------|:--------:|:---------------------:|:--------:|-------------------------------------------------------------|
+| `version`      | `string` |       `latest`        |   yes    | Nomad version to install                                    |
+| `github-token` | `string` | `${{ github.token }}` |    no    | GitHub token (for requesting the latest Nomad version info) |
+
+### Outputs
+
+| Name        |   Type   | Description                   |
+|-------------|:--------:|-------------------------------|
+| `nomad-bin` | `string` | Path to the nomad binary file |
 
 ## Releasing
 

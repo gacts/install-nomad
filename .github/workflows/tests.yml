@@ -92,10 +92,13 @@ jobs:
       fail-fast: false
       matrix:
         runs-on: [macos-latest, ubuntu-latest, windows-latest]
+        version: [latest, 1.2.0]
     steps:
       - uses: actions/checkout@v3
 
       - name: Run this action
         uses: ./
+        with:
+          version: ${{ matrix.version }}
 
       - run: nomad version

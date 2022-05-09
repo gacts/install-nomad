@@ -21,7 +21,7 @@ async function run() {
     versionToInstall = input.version
   }
 
-  core.startGroup('Installation')
+  core.startGroup('💾 Install Nomad')
   core.info(`Nomad version to install: ${versionToInstall}`)
   const nomadZipPath = await tc.downloadTool(getNomadURI(process.platform, process.arch, versionToInstall))
   const extractedPath = await tc.extractZip(nomadZipPath, nomadZipPath + '-dist');
@@ -29,11 +29,11 @@ async function run() {
   core.addPath(extractedPath)
   core.endGroup()
 
-  core.startGroup('Verify')
+  core.startGroup('🧪 Installation check')
   const nomadPath = await io.which('nomad', true)
   core.info(`Nomad installed: ${nomadPath}`)
   core.setOutput('nomad-bin', nomadPath)
-  await exec.exec(`"${nomadPath}"`, ['version'])
+  await exec.exec(`"${nomadPath}"`, ['version'], {silent: true})
   core.endGroup()
 }
 

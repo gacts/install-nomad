@@ -94,4 +94,4 @@ jobs:
       - name: Run this action
         uses: ./
 
-      - run: nomad version
+      #- run: nomad version # TODO uncomment this

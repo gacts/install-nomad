@@ -18,13 +18,28 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - uses: gacts/install-nomad@v1
+        #with:
+        #  version: 1.2.0 # `latest` by default, but you can set a specific version to install, e.g.: `1.2.0`
+
+      - run: nomad version # any nomad command can be executed
 ```
 
-### Customizing
+## Customizing
 
-#### Inputs
+### Inputs
 
-_WIP_
+Following inputs can be used as `step.with` keys:
+
+| Name           |   Type   |        Default        | Required | Description                                                 |
+|----------------|:--------:|:---------------------:|:--------:|-------------------------------------------------------------|
+| `version`      | `string` |       `latest`        |   yes    | Nomad version to install                                    |
+| `github-token` | `string` | `${{ github.token }}` |    no    | GitHub token (for requesting the latest Nomad version info) |
+
+### Outputs
+
+| Name        |   Type   | Description                   |
+|-------------|:--------:|-------------------------------|
+| `nomad-bin` | `string` | Path to the nomad binary file |
 
 ## Releasing
 

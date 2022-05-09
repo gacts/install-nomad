@@ -12,7 +12,7 @@ const input = {
 
 // main action entrypoint
 async function run() {
-  let versionToInstall;
+  let versionToInstall
 
   if (input.version.toLowerCase() === 'latest') {
     core.debug('Requesting latest nomad version...')
@@ -24,7 +24,7 @@ async function run() {
   core.startGroup('💾 Install Nomad')
   core.info(`Nomad version to install: ${versionToInstall}`)
   const nomadZipPath = await tc.downloadTool(getNomadURI(process.platform, process.arch, versionToInstall))
-  const extractedPath = await tc.extractZip(nomadZipPath, nomadZipPath + '-dist');
+  const extractedPath = await tc.extractZip(nomadZipPath, nomadZipPath + '-dist')
   core.debug(`Add ${extractedPath} to the $PATH`)
   core.addPath(extractedPath)
   core.endGroup()

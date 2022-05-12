@@ -2,39 +2,92 @@ const core = require('@actions/core') // docs: https://github.com/actions/toolki
 const tc = require('@actions/tool-cache') // docs: https://github.com/actions/toolkit/tree/main/packages/tool-cache
 const github = require('@actions/github') // docs: https://github.com/actions/toolkit/tree/main/packages/github
 const io = require('@actions/io') // docs: https://github.com/actions/toolkit/tree/main/packages/io
+const cache = require('@actions/cache') // docs: https://github.com/actions/toolkit/tree/main/packages/cache
 const exec = require('@actions/exec') // docs: https://github.com/actions/toolkit/tree/main/packages/exec
+const path = require('path')
+const os = require('os')
 
 // read action inputs
 const input = {
-  version: core.getInput('version', {required: true}),
+  version: core.getInput('version', {required: true}).replace(/^v/, ''), // strip the 'v' prefix
   githubToken: core.getInput('github-token'),
 }
 
 // main action entrypoint
-async function run() {
-  let versionToInstall
+async function runAction() {
+  let version
 
   if (input.version.toLowerCase() === 'latest') {
     core.debug('Requesting latest nomad version...')
-    versionToInstall = await getLatestNomadVersion(input.githubToken)
+    version = await getLatestNomadVersion(input.githubToken)
   } else {
-    versionToInstall = input.version
+    version = input.version
   }
 
   core.startGroup('💾 Install Nomad')
-  core.info(`Nomad version to install: ${versionToInstall}`)
-  const nomadZipPath = await tc.downloadTool(getNomadURI(process.platform, process.arch, versionToInstall))
-  const extractedPath = await tc.extractZip(nomadZipPath, nomadZipPath + '-dist')
-  core.debug(`Add ${extractedPath} to the $PATH`)
-  core.addPath(extractedPath)
+  await doInstall(version)
   core.endGroup()
 
   core.startGroup('🧪 Installation check')
-  const nomadPath = await io.which('nomad', true)
-  core.info(`Nomad installed: ${nomadPath}`)
-  core.setOutput('nomad-bin', nomadPath)
-  await exec.exec(`"${nomadPath}"`, ['version'], {silent: true})
+  await doCheck()
   core.endGroup()
+}
+
+/**
+ * @param {string} version
+ *
+ * @returns {Promise<void>}
+ *
+ * @throws
+ */
+async function doInstall(version) {
+  const pathToInstall = path.join(os.tmpdir(), `nomad-${version}`)
+  const cacheKey = `nomad-cache-${version}-${process.platform}-${process.arch}`
+
+  core.info(`Version to install: ${version} (target directory: ${pathToInstall})`)
+
+  let restoredFromCache = undefined
+
+  try {
+    restoredFromCache = await cache.restoreCache([pathToInstall], cacheKey)
+  } catch (e) {
+    core.warning(e)
+  }
+
+  if (restoredFromCache !== undefined) { // cache HIT
+    core.info(`👌 Nomad restored from cache`)
+  } else { // cache MISS
+    const nomadZipPath = await tc.downloadTool(
+      getNomadURI(process.platform, process.arch, version), path.join(os.tmpdir(), `nomad.tmp`),
+    )
+    await tc.extractZip(nomadZipPath, pathToInstall)
+
+    try {
+      await cache.saveCache([pathToInstall], cacheKey)
+    } catch (e) {
+      core.warning(e)
+    }
+  }
+
+  core.addPath(pathToInstall)
+}
+
+/**
+ * @returns {Promise<void>}
+ *
+ * @throws
+ */
+async function doCheck() {
+  const nomadBinPath = await io.which('nomad', true)
+
+  if (nomadBinPath === "") {
+    throw new Error('nomad binary file not found in $PATH')
+  }
+
+  core.info(`Nomad installed: ${nomadBinPath}`)
+  core.setOutput('nomad-bin', nomadBinPath)
+
+  await exec.exec('nomad', ['version'], {silent: true})
 }
 
 /**
@@ -109,8 +162,8 @@ function getNomadURI(platform, arch, version) {
 }
 
 // run the action
-try {
-  run()
-} catch (error) {
+(async () => {
+  await runAction()
+})().catch(error => {
   core.setFailed(error.message)
-}
+})

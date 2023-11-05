@@ -20,7 +20,7 @@ Additionally, this action uses GitHub **caching mechanism** to speed up your wor
 ```yaml
 jobs:
   install-nomad:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
       - uses: gacts/install-nomad@v1
         #with:

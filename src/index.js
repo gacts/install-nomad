@@ -9,7 +9,7 @@ const os = require('os')
 
 // read action inputs
 const input = {
-  version: core.getInput('version', {required: true}).replace(/^v/, ''), // strip the 'v' prefix
+  version: core.getInput('version', {required: true}).replace(/^[vV]/, ''), // strip the 'v' prefix
   githubToken: core.getInput('github-token'),
 }
 
@@ -19,7 +19,8 @@ async function runAction() {
 
   if (input.version.toLowerCase() === 'latest') {
     core.debug('Requesting latest nomad version...')
-    version = await getLatestNomadVersion(input.githubToken)
+    version = await getLatestVersion(input.githubToken)
+    core.debug(`Latest version: ${version}`)
   } else {
     version = input.version
   }
@@ -46,6 +47,7 @@ async function doInstall(version) {
 
   core.info(`Version to install: ${version} (target directory: ${pathToInstall})`)
 
+  /** @type {string|undefined} */
   let restoredFromCache = undefined
 
   try {
@@ -54,13 +56,16 @@ async function doInstall(version) {
     core.warning(e)
   }
 
-  if (restoredFromCache !== undefined) { // cache HIT
-    core.info(`👌 Nomad restored from cache`)
+  if (restoredFromCache) { // cache HIT
+    core.info(`👌 Nomad has been restored from cache`)
   } else { // cache MISS
-    const nomadZipPath = await tc.downloadTool(
-      getNomadURI(process.platform, process.arch, version), path.join(os.tmpdir(), `nomad.tmp`),
-    )
-    await tc.extractZip(nomadZipPath, pathToInstall)
+    const distUrl = getDistUrl(process.platform, process.arch, version)
+    const pathToUnpack = path.join(os.tmpdir(), `nomad.tmp`)
+
+    core.debug(`Downloading nomad from ${distUrl} to ${pathToUnpack}`)
+
+    const distPath = await tc.downloadTool(distUrl, pathToUnpack)
+    await tc.extractZip(distPath, pathToInstall)
 
     try {
       await cache.saveCache([pathToInstall], cacheKey)
@@ -75,17 +80,17 @@ async function doInstall(version) {
 /**
  * @returns {Promise<void>}
  *
- * @throws
+ * @throws {Error} binary file not found in $PATH or version check failed
  */
 async function doCheck() {
-  const nomadBinPath = await io.which('nomad', true)
+  const binPath = await io.which('nomad', true)
 
-  if (nomadBinPath === "") {
+  if (binPath === "") {
     throw new Error('nomad binary file not found in $PATH')
   }
 
-  core.info(`Nomad installed: ${nomadBinPath}`)
-  core.setOutput('nomad-bin', nomadBinPath)
+  core.info(`Nomad installed: ${binPath}`)
+  core.setOutput('nomad-bin', binPath)
 
   await exec.exec('nomad', ['version'], {silent: true})
 }
@@ -94,7 +99,8 @@ async function doCheck() {
  * @param {string} githubAuthToken
  * @returns {Promise<string>}
  */
-async function getLatestNomadVersion(githubAuthToken) {
+async function getLatestVersion(githubAuthToken) {
+  /** @type {import('@actions/github')} */
   const octokit = github.getOctokit(githubAuthToken)
 
   // docs: https://octokit.github.io/rest.js/v18#repos-get-latest-release
@@ -103,7 +109,7 @@ async function getLatestNomadVersion(githubAuthToken) {
     repo: 'nomad',
   })
 
-  return latest.data.tag_name.replace(/^v/, '') // strip the 'v' prefix
+  return latest.data.tag_name.replace(/^[vV]/, '') // strip the 'v' prefix
 }
 
 /**
@@ -115,9 +121,9 @@ async function getLatestNomadVersion(githubAuthToken) {
  *
  * @returns {string}
  *
- * @throws
+ * @throws {Error} Unsupported platform or architecture
  */
-function getNomadURI(platform, arch, version) {
+function getDistUrl(platform, arch, version) {
   switch (platform) {
     case 'linux': {
       switch (arch) {
@@ -134,15 +140,19 @@ function getNomadURI(platform, arch, version) {
           return `https://releases.hashicorp.com/nomad/${version}/nomad_${version}_linux_arm64.zip`
       }
 
-      throw new Error('Unsupported linux architecture')
+      throw new Error(`Unsupported linux architecture (${arch})`)
     }
 
     case 'darwin': {
-      if (arch === 'x64') { // Amd64
-        return `https://releases.hashicorp.com/nomad/${version}/nomad_${version}_darwin_amd64.zip`
+      switch (arch) {
+        case 'x64': // Amd64
+          return `https://releases.hashicorp.com/nomad/${version}/nomad_${version}_darwin_amd64.zip`
+
+        case 'arm64':
+          return `https://releases.hashicorp.com/nomad/${version}/nomad_${version}_darwin_arm64.zip`
       }
 
-      throw new Error('Unsupported MacOS architecture')
+      throw new Error(`Unsupported MacOS architecture (${arch})`)
     }
 
     case 'win32': {
@@ -154,11 +164,11 @@ function getNomadURI(platform, arch, version) {
           return `https://releases.hashicorp.com/nomad/${version}/nomad_${version}_windows_amd64.zip`
       }
 
-      throw new Error('Unsupported windows architecture')
+      throw new Error(`Unsupported windows architecture (${arch})`)
     }
   }
 
-  throw new Error('Unsupported OS (platform)')
+  throw new Error(`Unsupported platform (${platform})`)
 }
 
 // run the action

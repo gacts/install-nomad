@@ -31,7 +31,7 @@ jobs:
     env: {FORCE_COLOR: 'true'}
     steps:
       - uses: actions/checkout@v4
-      - {uses: gacts/setup-node-with-cache@v1, with: {node-version: 20}}
+      - {uses: actions/setup-node@v4, with: {node-version: 20, cache: 'npm'}}
       - run: npm install
       - run: npm run lint
 
@@ -43,7 +43,7 @@ jobs:
     env: {FORCE_COLOR: 'true'}
     steps:
       - uses: actions/checkout@v4
-      - {uses: gacts/setup-node-with-cache@v1, with: {node-version: 20}}
+      - {uses: actions/setup-node@v4, with: {node-version: 20, cache: 'npm'}}
       - run: npm install
       - run: npm run build
       - uses: actions/upload-artifact@v4
